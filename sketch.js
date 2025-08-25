@@ -8,6 +8,11 @@ let sound, fft;
 let fileInput;
 const TERRAIN_UPDATE_INTERVAL = 2; // recalcula a malha a cada 2 frames
 
+// Variáveis de física para movimentar o humanoide conforme o áudio
+let humanoidOffset = 80; // altura base acima do terreno
+let humanoidVelocity = 0; // velocidade vertical atual
+const GRAVITY = -0.8; // força gravitacional aplicada a cada frame
+
 function setup() {
   createCanvas(windowWidth, windowHeight, WEBGL);
   pixelDensity(1);
@@ -54,6 +59,7 @@ function draw() {
   let mid = 0;
   let bgBlue = 40;
   let colorIntensity = 150;
+  let terrainCenter = 0; // altura do terreno no centro da cena
 
   if (sound && sound.isPlaying()) {
     fft.analyze();
@@ -75,6 +81,18 @@ function draw() {
         }
         yoff += 0.1;
       }
+    }
+
+    // Calcula a altura do terreno no centro e atualiza a física do humanoide
+    terrainCenter = terrain[floor(cols / 2)][floor(rows / 2)];
+    if (bass > 170 && humanoidOffset <= 81) {
+      humanoidVelocity += map(bass, 170, 255, 4, 12);
+    }
+    humanoidVelocity += GRAVITY;
+    humanoidOffset += humanoidVelocity;
+    if (humanoidOffset < 80) {
+      humanoidOffset = 80;
+      humanoidVelocity = 0;
     }
   }
 
@@ -102,7 +120,7 @@ function draw() {
     }
 
     push();
-    translate(w / 2, h / 2, 100);
+    translate(w / 2, h / 2, terrainCenter + humanoidOffset);
     drawHumanoid(bass, colorIntensity);
     pop();
   }
