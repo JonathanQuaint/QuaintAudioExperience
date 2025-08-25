@@ -39,10 +39,15 @@ function setup() {
 
 async function initAudio() {
   try {
-    userStartAudio();
+    await userStartAudio();
     const stream = await navigator.mediaDevices.getDisplayMedia({ video: true, audio: true });
     const audioContext = getAudioContext();
     systemSource = audioContext.createMediaStreamSource(stream);
+    // mantém o fluxo ativo e inaudível para análise
+    const gainNode = audioContext.createGain();
+    gainNode.gain.value = 0;
+    systemSource.connect(gainNode);
+    gainNode.connect(audioContext.destination);
     fft.setInput(systemSource);
     listening = true;
     startBtn.remove();
