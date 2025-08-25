@@ -4,8 +4,10 @@ let w;
 let h;
 let terrain = [];
 
-let sound, fft;
-let fileInput;
+let fft;
+let mic;
+let listening = false;
+let startBtn;
 const TERRAIN_UPDATE_INTERVAL = 2; // recalcula a malha a cada 2 frames
 
 // Variáveis de física para movimentar o humanoide conforme o áudio
@@ -30,18 +32,23 @@ function setup() {
     }
   }
 
-  fileInput = createFileInput(handleFile);
-  fileInput.position(10, 10);
+  startBtn = select('#start-btn');
+  startBtn.mousePressed(initAudio);
   fft = new p5.FFT();
 }
 
-function handleFile(file) {
-  if (file.type === 'audio') {
-    sound = loadSound(file.data, () => {
-      sound.loop();
-      fft.setInput(sound);
-    });
-  }
+function initAudio() {
+  userStartAudio();
+  mic = new p5.AudioIn();
+  mic.start(() => {
+    fft.setInput(mic);
+    listening = true;
+    startBtn.remove();
+    const instr = document.getElementById('instructions');
+    if (instr) instr.remove();
+  }, err => {
+    console.error('Erro ao acessar áudio:', err);
+  });
 }
 
 function windowResized() {
@@ -61,7 +68,7 @@ function draw() {
   let colorIntensity = 150;
   let terrainCenter = 0; // altura do terreno no centro da cena
 
-  if (sound && sound.isPlaying()) {
+  if (listening) {
     fft.analyze();
     bass = fft.getEnergy("bass"); // Energia dos graves
     treble = fft.getEnergy("treble"); // Energia dos agudos
@@ -105,7 +112,7 @@ function draw() {
   rotateX(PI / 3);
   translate(-w / 2, -h / 2); // Centraliza a malha do terreno
 
-  if (sound && sound.isPlaying()) {
+  if (listening) {
     stroke(255, colorIntensity, 150);
     noFill();
 
