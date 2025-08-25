@@ -5,7 +5,7 @@ let h;
 let terrain = [];
 
 let fft;
-let mic;
+let systemSource;
 let listening = false;
 let startBtn;
 const TERRAIN_UPDATE_INTERVAL = 2; // recalcula a malha a cada 2 frames
@@ -37,18 +37,21 @@ function setup() {
   fft = new p5.FFT();
 }
 
-function initAudio() {
-  userStartAudio();
-  mic = new p5.AudioIn();
-  mic.start(() => {
-    fft.setInput(mic);
+async function initAudio() {
+  try {
+    userStartAudio();
+    const stream = await navigator.mediaDevices.getDisplayMedia({ video: true, audio: true });
+    const audioContext = getAudioContext();
+    systemSource = audioContext.createMediaStreamSource(stream);
+    fft.setInput(systemSource);
     listening = true;
     startBtn.remove();
     const instr = document.getElementById('instructions');
     if (instr) instr.remove();
-  }, err => {
-    console.error('Erro ao acessar áudio:', err);
-  });
+    stream.getVideoTracks().forEach(track => track.stop());
+  } catch (err) {
+    console.error('Erro ao capturar áudio do sistema:', err);
+  }
 }
 
 function windowResized() {
