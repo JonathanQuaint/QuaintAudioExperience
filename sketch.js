@@ -43,17 +43,29 @@ function windowResized() {
 }
 
 function draw() {
-  background(10);
-  
+  let bass = 0;
+  let treble = 0;
+  let mid = 0;
+  let bgBlue = 40;
+
+  if (sound && sound.isPlaying()) {
+    let spectrum = fft.analyze();
+    bass = fft.getEnergy("bass"); // Energia dos graves
+    treble = fft.getEnergy("treble"); // Energia dos agudos
+    mid = fft.getEnergy("mid"); // Médios
+    bgBlue = map(treble, 0, 255, 40, 120);
+  }
+
+  background(10, 10, bgBlue);
+
+  orbitControl();
+  ambientLight(80);
+  directionalLight(255, 255, 255, 0.25, 0.25, -1);
+
   rotateX(PI / 3);
   translate(-w / 2, -h / 2); // Centraliza a malha do terreno
 
   if (sound && sound.isPlaying()) {
-    let spectrum = fft.analyze();
-    let bass = fft.getEnergy("bass"); // Energia dos graves
-    let treble = fft.getEnergy("treble"); // Energia dos agudos
-    let mid = fft.getEnergy("mid"); // Médios
-    let speed = map(bass, 0, 255, 0.02, 0.2);
     drawHumanoid(bass);
 
     // Atualiza o terreno dinamicamente com base no som
@@ -81,60 +93,116 @@ function draw() {
 }
 
 function drawHumanoid(bass) {
-  stroke(255, 0, 150, 200);
-  strokeWeight(2);
-  noFill();
-
   let scaleFactor = map(bass, 0, 255, 1, 1.2); // Faz o corpo pulsar
-
-  push();
-  scale(scaleFactor); // Faz o corpo "respirar"
-
-  // Cabeça pulsante
-  push();
-  translate(0, -90, 0);
-  sphere(20 + sin(frameCount * 0.1) * 5, 8, 8);
-  pop();
-
-  // Corpo principal
-  push();
-  cylinder(25, 80, 8, 1);
-  pop();
-
-  // Oscilações para braços e pernas
   let armSwing = sin(frameCount * 0.1) * bass * 0.02; // Movimento dos braços
   let legSwing = cos(frameCount * 0.1) * bass * 0.02; // Movimento das pernas
 
-  // Braço Esquerdo
   push();
-  translate(-30, -50, 0);
+  scale(scaleFactor); // Faz o corpo "respirar"
+  noStroke();
+  ambientMaterial(200, 100, 200);
+
+  // Cabeça com olhos
+  push();
+  translate(0, -110, 0);
+  sphere(20, 16, 16);
+  // Olho esquerdo
+  push();
+  translate(-7, -5, 18);
+  ambientMaterial(20);
+  sphere(3, 8, 8);
+  pop();
+  // Olho direito
+  push();
+  translate(7, -5, 18);
+  ambientMaterial(20);
+  sphere(3, 8, 8);
+  pop();
+  ambientMaterial(200, 100, 200);
+  pop();
+
+  // Pescoço
+  push();
+  translate(0, -90, 0);
+  cylinder(8, 20);
+  pop();
+
+  // Tórax
+  push();
+  translate(0, -50, 0);
+  box(40, 60, 20);
+  pop();
+
+  // Abdômen
+  push();
+  translate(0, 10, 0);
+  box(30, 40, 15);
+  pop();
+
+  // Braço esquerdo
+  push();
+  translate(-25, -60, 0);
+  sphere(8); // articulacao do ombro
   rotateZ(-PI / 6 + armSwing);
   translate(0, 25, 0);
-  cylinder(10, 50, 8, 1);
+  cylinder(8, 40);
+  translate(0, 20, 0);
+  sphere(6); // cotovelo
+  translate(0, 20, 0);
+  cylinder(6, 40);
+  translate(0, 25, 0);
+  sphere(5); // mão
   pop();
 
-  // Braço Direito
+  // Braço direito
   push();
-  translate(30, -50, 0);
+  translate(25, -60, 0);
+  sphere(8);
   rotateZ(PI / 6 - armSwing);
   translate(0, 25, 0);
-  cylinder(10, 50, 8, 1);
+  cylinder(8, 40);
+  translate(0, 20, 0);
+  sphere(6);
+  translate(0, 20, 0);
+  cylinder(6, 40);
+  translate(0, 25, 0);
+  sphere(5);
   pop();
 
-  // Perna Esquerda
+  // Quadril
   push();
-  translate(-15, 40, 0);
+  translate(0, 40, 0);
+  box(30, 20, 15);
+  pop();
+
+  // Perna esquerda
+  push();
+  translate(-12, 50, 0);
+  sphere(6); // articulacao do quadril
   rotateZ(-legSwing);
-  translate(0, 30, 0);
-  cylinder(10, 60, 8, 1);
+  translate(0, 25, 0);
+  cylinder(8, 50);
+  translate(0, 25, 0);
+  sphere(6); // joelho
+  translate(0, 25, 0);
+  cylinder(6, 50);
+  translate(0, 30, 10);
+  box(12, 5, 20); // pé
   pop();
 
-  // Perna Direita
+  // Perna direita
   push();
-  translate(15, 40, 0);
+  translate(12, 50, 0);
+  sphere(6);
   rotateZ(legSwing);
-  translate(0, 30, 0);
-  cylinder(10, 60, 8, 1);
+  translate(0, 25, 0);
+  cylinder(8, 50);
+  translate(0, 25, 0);
+  sphere(6);
+  translate(0, 25, 0);
+  cylinder(6, 50);
+  translate(0, 30, 10);
+  box(12, 5, 20);
   pop();
 
   pop();
