@@ -32,7 +32,7 @@ function setup() {
     }
   }
 
-  startBtn = select('#start-btn');
+  startBtn = select("#start-btn");
   startBtn.mousePressed(initAudio);
   fft = new p5.FFT();
 }
@@ -40,7 +40,10 @@ function setup() {
 async function initAudio() {
   try {
     await userStartAudio();
-    const stream = await navigator.mediaDevices.getDisplayMedia({ video: true, audio: true });
+    const stream = await navigator.mediaDevices.getDisplayMedia({
+      video: true,
+      audio: true,
+    });
     const audioContext = getAudioContext();
     systemSource = audioContext.createMediaStreamSource(stream);
     // mantém o fluxo ativo e inaudível para análise
@@ -51,11 +54,11 @@ async function initAudio() {
     fft.setInput(systemSource);
     listening = true;
     startBtn.remove();
-    const instr = document.getElementById('instructions');
+    const instr = document.getElementById("instructions");
     if (instr) instr.remove();
-    stream.getVideoTracks().forEach(track => track.stop());
+    stream.getVideoTracks().forEach((track) => track.stop());
   } catch (err) {
-    console.error('Erro ao capturar áudio do sistema:', err);
+    console.error("Erro ao capturar áudio do sistema:", err);
   }
 }
 
@@ -148,7 +151,7 @@ function drawHumanoid(bass, colorIntensity) {
 
   push();
   scale(scaleFactor); // Faz o corpo "respirar"
-  stroke(255, colorIntensity, 150);
+  stroke(16, 185, 129);
   noFill();
   strokeWeight(1.5);
 
