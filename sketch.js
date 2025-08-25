@@ -1,16 +1,19 @@
 let cols, rows;
-let scl = 20;
+let scl = 40;
 let w;
 let h;
 let terrain = [];
 
 let sound, fft;
 let fileInput;
+const TERRAIN_UPDATE_INTERVAL = 2; // recalcula a malha a cada 2 frames
 
 function setup() {
   createCanvas(windowWidth, windowHeight, WEBGL);
-  w = windowWidth * 2;
-  h = windowHeight * 1.5;
+  pixelDensity(1);
+  frameRate(60);
+  w = windowWidth * 1.5;
+  h = windowHeight;
   cols = floor(w / scl);
   rows = floor(h / scl);
 
@@ -38,8 +41,8 @@ function handleFile(file) {
 
 function windowResized() {
   resizeCanvas(windowWidth, windowHeight);
-  w = windowWidth * 2;
-  h = windowHeight * 1.5;
+  w = windowWidth * 1.5;
+  h = windowHeight;
   cols = floor(w / scl);
   rows = floor(h / scl);
   terrain = new Array(cols).fill().map(() => new Array(rows).fill(0));
@@ -60,11 +63,17 @@ function draw() {
     bgBlue = map(treble, 0, 255, 40, 120);
     colorIntensity = map(mid, 0, 255, 50, 255);
 
-    // Atualiza o terreno dinamicamente com base no som
-    for (let y = 0; y < rows - 1; y++) {
-      for (let x = 0; x < cols; x++) {
-        let noiseValue = noise(frameCount * 0.05 + x * 0.1, y * 0.1);
-        terrain[x][y] = map(noiseValue, 0, 1, -mid * 3.2, treble * 4.2);
+    // Atualiza o terreno de forma menos frequente para melhorar o desempenho
+    if (frameCount % TERRAIN_UPDATE_INTERVAL === 0) {
+      let yoff = frameCount * 0.05;
+      for (let y = 0; y < rows - 1; y++) {
+        let xoff = 0;
+        for (let x = 0; x < cols; x++) {
+          let noiseValue = noise(xoff, yoff);
+          terrain[x][y] = map(noiseValue, 0, 1, -mid * 3.2, treble * 4.2);
+          xoff += 0.1;
+        }
+        yoff += 0.1;
       }
     }
   }
